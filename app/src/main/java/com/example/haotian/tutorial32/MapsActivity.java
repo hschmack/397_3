@@ -28,7 +28,9 @@ import android.widget.ImageView;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.location.LocationListener;
@@ -212,29 +214,6 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             }
         });
 
-//        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-//            @Override
-//            public View getInfoWindow(Marker marker) {
-//                return null;
-//            }
-//
-//            @Override
-//            public View getInfoContents(Marker marker) {
-//
-//                View v = getLayoutInflater().inflate(R.layout.info_window, null);
-//
-////                EditText title = (EditText) findViewById(R.id.title);
-////                title.setOnClickListener(new View.OnClickListener(){
-////                    @Override
-////                    public void onClick(View v) {
-////
-////                    }
-////                });
-//
-//                return v;
-//            }
-//        });
-
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener(){
               @Override
               public void onInfoWindowClick(final Marker marker) {
@@ -243,16 +222,17 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
                   dialog.setContentView(R.layout.info_window);
                   dialog.setTitle("Edit Marker Info");
 
-                  final EditText title = (EditText) findViewById(R.id.title);
-                  final EditText snippet = (EditText) findViewById(R.id.snippet);
+                  final EditText title = (EditText) dialog.findViewById(R.id.title);
+                  final EditText snippet = (EditText) dialog.findViewById(R.id.snippet);
 
-                  Button okButton = (Button) findViewById(R.id.dialogButtonOK);
+                  Button okButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
 
                   okButton.setOnClickListener(new View.OnClickListener() {
                       @Override
                       public void onClick(View v) {
                           markerContext.setTitle(title.getText().toString());
                           markerContext.setSnippet(snippet.getText().toString());
+                          markerContext.showInfoWindow();
                           dialog.dismiss();
                       }
                   });
@@ -305,13 +285,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             writeLocationData();
             writeToFile();
 
-           // Bundle extras = data.getExtras();
-           // if (extras == null){ Log.d(TAG, "YEAH NULL"); return; }
-           // Bitmap imageBitmap = MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(), tmpPath, MediaStore.Images.Thumbnails.MINI_KIND,  (BitmapFactory.Options) null);
             Bitmap imageBitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(tmpPath.getPath()), 96, 96);
             addMarker(imageBitmap);
-            //we need to then set the imageBitmap to a map marker
-            //mImageView.setImageBitmap(imageBitmap);
         }
     }
 
