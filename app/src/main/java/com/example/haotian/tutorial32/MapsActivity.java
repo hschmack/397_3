@@ -1,6 +1,9 @@
 package com.example.haotian.tutorial32;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,6 +14,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 
@@ -18,6 +22,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import android.net.Uri;
 import android.os.Environment;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import java.io.FileWriter;
@@ -44,6 +49,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     public static final int THUMBNAIL = 1;
     public static final int REQUEST_IMAGE_CAPTURE = 1;
     public static boolean mRequestingLocationUpdates;
+
+    final Context context = this;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Button picButton; //takes user to camera
@@ -181,36 +188,13 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
 
-            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(Marker marker) {
-                    marker.setTitle("CHANGE");
-                    marker.setSnippet("CHANGE CHANGE CHANGE");
-                    return false;
-                }
-            });
-
-            mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-                @Override
-                public View getInfoWindow(Marker marker) {
-                    return null;
-                }
-
-                @Override
-                public View getInfoContents(Marker marker) {
-
-                    View v = getLayoutInflater().inflate(R.layout.info_window, null);
-
-                    return v;
-                }
-            });
-
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
                 setUpMap();
             }
         }
     }
+
 
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case, we
@@ -219,13 +203,76 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                marker.showInfoWindow();
+
+                return false;
+            }
+        });
+
+//        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+//            @Override
+//            public View getInfoWindow(Marker marker) {
+//                return null;
+//            }
+//
+//            @Override
+//            public View getInfoContents(Marker marker) {
+//
+//                View v = getLayoutInflater().inflate(R.layout.info_window, null);
+//
+////                EditText title = (EditText) findViewById(R.id.title);
+////                title.setOnClickListener(new View.OnClickListener(){
+////                    @Override
+////                    public void onClick(View v) {
+////
+////                    }
+////                });
+//
+//                return v;
+//            }
+//        });
+
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener(){
+              @Override
+              public void onInfoWindowClick(final Marker marker) {
+                  final Marker markerContext = marker;
+                  final Dialog dialog = new Dialog(context);
+                  dialog.setContentView(R.layout.info_window);
+                  dialog.setTitle("Edit Marker Info");
+
+                  final EditText title = (EditText) findViewById(R.id.title);
+                  final EditText snippet = (EditText) findViewById(R.id.snippet);
+
+                  Button okButton = (Button) findViewById(R.id.dialogButtonOK);
+
+                  okButton.setOnClickListener(new View.OnClickListener() {
+                      @Override
+                      public void onClick(View v) {
+                          markerContext.setTitle(title.getText().toString());
+                          markerContext.setSnippet(snippet.getText().toString());
+                          dialog.dismiss();
+                      }
+                  });
+
+                  dialog.show();
+              }
+          }
+        );
+
         mMap.addMarker(new MarkerOptions().position(new LatLng(20, 20)).title("EECS397/600"));
     }
 
     private void addMarker(Bitmap img){
-        mMap.addMarker(new MarkerOptions()
-            .position(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude())))
-        .setIcon(BitmapDescriptorFactory.fromBitmap(img));
+        Marker mark = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
+                .title("Edit Title")
+                .snippet("Edit Snippet"));
+
+        mark.setIcon(BitmapDescriptorFactory.fromBitmap(img));
+        mark.showInfoWindow();
     }
 
     /**
