@@ -3,8 +3,10 @@ package com.example.haotian.tutorial32;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 //import android.location.LocationListener;
+import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
@@ -52,7 +54,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     private ImageView mImageView;
 
     private File file;
-    private File tmpPath;
+    private Uri tmpPath;
     public BufferedWriter bufferedWriter;
     public StringBuilder tempLocationData;
 
@@ -178,6 +180,31 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             // Try to obtain the map from the SupportMapFragment.
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
+
+            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    marker.setTitle("CHANGE");
+                    marker.setSnippet("CHANGE CHANGE CHANGE");
+                    return false;
+                }
+            });
+
+            mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+                @Override
+                public View getInfoWindow(Marker marker) {
+                    return null;
+                }
+
+                @Override
+                public View getInfoContents(Marker marker) {
+
+                    View v = getLayoutInflater().inflate(R.layout.info_window, null);
+
+                    return v;
+                }
+            });
+
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
                 setUpMap();
@@ -195,6 +222,12 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         mMap.addMarker(new MarkerOptions().position(new LatLng(20, 20)).title("EECS397/600"));
     }
 
+    private void addMarker(Bitmap img){
+        mMap.addMarker(new MarkerOptions()
+            .position(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude())))
+        .setIcon(BitmapDescriptorFactory.fromBitmap(img));
+    }
+
     /**
      * Taken from http://developer.android.com/training/camera/photobasics.html
      */
@@ -210,6 +243,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             }
             if (photoFile != null){
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+                tmpPath = Uri.fromFile(photoFile);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
@@ -224,10 +258,13 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             writeLocationData();
             writeToFile();
 
-            Bundle extras = data.getExtras();
-            if (extras == null){ Log.d(TAG, "YEAH NULL"); return; }
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            mImageView.setImageBitmap(imageBitmap);
+           // Bundle extras = data.getExtras();
+           // if (extras == null){ Log.d(TAG, "YEAH NULL"); return; }
+           // Bitmap imageBitmap = MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(), tmpPath, MediaStore.Images.Thumbnails.MINI_KIND,  (BitmapFactory.Options) null);
+            Bitmap imageBitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(tmpPath.getPath()), 96, 96);
+            addMarker(imageBitmap);
+            //we need to then set the imageBitmap to a map marker
+            //mImageView.setImageBitmap(imageBitmap);
         }
     }
 
